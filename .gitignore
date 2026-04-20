@@ -9,3 +9,4 @@ handout/
 .DS_Store
 
 # Wir erlauben explizit alles andere (z.B. part1/, part2/, web/, readme.md, Bilder)
+!nasa_dump.sql

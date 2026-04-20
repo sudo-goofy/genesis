@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASA Datenbank Setup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['"Roboto Mono"', 'monospace'],
+                        sans: ['"Roboto Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brutalBg: '#e5e5e5',
+                    },
+                    boxShadow: {
+                        'brutal': '8px 8px 0px 0px rgba(0,0,0,1)',
+                        'brutal-sm': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'brutal-hover': '2px 2px 0px 0px rgba(0,0,0,1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            body {
+                background-color: #e5e5e5;
+                background-image: radial-gradient(#000000 1px, transparent 1px);
+                background-size: 20px 20px;
+                color: #000;
+            }
+        }
+        @layer components {
+            .btn-brutal {
+                @apply bg-black text-white px-6 py-3 font-bold uppercase shadow-brutal hover:-translate-y-1 hover:shadow-brutal transition-all text-center flex items-center justify-center gap-2 border-4 border-black;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20 font-mono antialiased">
+    <header class="border-b-4 border-black bg-white py-4 px-6 mb-10 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <i data-lucide="database" class="w-8 h-8 stroke-[2.5]"></i>
+            <h1 class="font-bold text-xl md:text-2xl uppercase tracking-tight">System Setup</h1>
+        </div>
+        <button onclick="window.close()" class="bg-white text-black px-4 py-2 border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-white transition-colors">
+            Schließen
+        </button>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 space-y-8">
+        <div class="bg-white border-4 border-black p-6 md:p-10 shadow-brutal">
+            <h2 class="text-3xl font-black uppercase mb-4 border-b-4 border-black pb-2">1. Datenbank Download</h2>
+            <p class="text-lg mb-6">Lade den offiziellen NASA Datenbank-Dump herunter, der die verifizierten Exoplaneten-Daten enthält.</p>
+            <a href="nasa_dump.sql" download class="btn-brutal max-w-md bg-yellow-400 text-black hover:bg-yellow-300">
+                <i data-lucide="download" class="w-6 h-6"></i> nasa_dump.sql herunterladen
+            </a>
+        </div>
+
+        <div class="bg-white border-4 border-black p-6 md:p-10 shadow-brutal">
+            <h2 class="text-3xl font-black uppercase mb-4 border-b-4 border-black pb-2">2. Import Anleitung</h2>
+            
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-xl font-bold uppercase mb-2 flex items-center gap-2"><i data-lucide="terminal" class="w-5 h-5"></i> MariaDB im Terminal (Mac/Windows/Linux)</h3>
+                    <p class="mb-2">Öffne dein Terminal oder die Eingabeaufforderung (CMD) und navigiere in den Ordner mit der heruntergeladenen Datei. Führe folgenden Befehl aus:</p>
+                    <div class="bg-black text-green-400 p-4 font-mono text-sm border-2 border-gray-800">
+                        mariadb -u root -p < nasa_dump.sql
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold uppercase mb-2 flex items-center gap-2"><i data-lucide="layout" class="w-5 h-5"></i> HeidiSQL / phpMyAdmin (GUI)</h3>
+                    <ul class="list-decimal pl-6 space-y-2">
+                        <li>Erstelle eine neue, leere Datenbank (falls nötig).</li>
+                        <li><strong>HeidiSQL:</strong> Klicke im Menü auf <em>"Datei"</em> ➔ <em>"SQL-Datei ausführen"</em> und wähle die <code>nasa_dump.sql</code> aus.</li>
+                        <li><strong>phpMyAdmin:</strong> Klicke oben auf den Reiter <em>"Importieren"</em>, wähle die Datei unter <em>"Datei auswählen"</em> und klicke auf <em>"Importieren"</em>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script> lucide.createIcons(); </script>
+</body>
+</html>
