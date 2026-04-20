@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projekt Genesis - Mission Hub</title>
+
+    <!-- Font: Roboto Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['"Roboto Mono"', 'monospace'],
+                        sans: ['"Roboto Mono"', 'monospace'], // Überschreibt sans für kompletten Mono-Look
+                    },
+                    colors: {
+                        brutalBg: '#e5e5e5',
+                        esa: '#fde047',  // Yellow
+                        nasa: '#93c5fd', // Blue
+                        jaxa: '#fca5a5', // Red
+                        isro: '#86efac', // Green
+                    },
+                    boxShadow: {
+                        'brutal': '8px 8px 0px 0px rgba(0,0,0,1)',
+                        'brutal-sm': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'brutal-hover': '2px 2px 0px 0px rgba(0,0,0,1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer base {
+            body {
+                background-color: #e5e5e5;
+                background-image: radial-gradient(#000000 1px, transparent 1px);
+                background-size: 20px 20px;
+                color: #000;
+            }
+        }
+
+        @layer components {
+            .glossary-term {
+                @apply cursor-pointer border-b-[3px] border-dashed border-black bg-black/5 px-1 font-bold transition-all hover:bg-black hover:text-white;
+            }
+            .btn-exkurs {
+                @apply bg-white border-2 border-black px-4 py-2 font-bold uppercase shadow-brutal-sm hover:-translate-y-1 hover:shadow-brutal transition-all text-sm outline-none focus:ring-4 focus:ring-black;
+            }
+            .card-mission {
+                @apply text-left border-4 border-black p-6 shadow-brutal hover:shadow-brutal-hover hover:translate-y-1 hover:translate-x-1 transition-all outline-none focus:ring-4 focus:ring-black;
+            }
+        }
+
+        @layer utilities {
+            .fade-in {
+                animation: fadeIn 0.3s ease-in-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .modal-backdrop {
+                backdrop-filter: blur(4px);
+                background-color: rgba(229, 229, 229, 0.8);
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen pb-20 selection:bg-black selection:text-white font-mono antialiased overflow-x-hidden">
+
+    <!-- Header -->
+    <header
+        class="border-b-4 border-black bg-white py-4 px-6 sticky top-0 z-40 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <i data-lucide="terminal" class="w-8 h-8 stroke-[2.5]"></i>
+            <h1 class="font-bold text-xl md:text-2xl uppercase tracking-tight">Mission Hub</h1>
+        </div>
+        <button id="btn-back" onclick="showHome()"
+            class="hidden bg-black text-white px-3 py-2 md:px-4 md:py-2 border-2 border-black font-bold uppercase text-sm hover:bg-white hover:text-black transition-colors flex shrink-0 items-center gap-2">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> <span class="hidden sm:inline">Übersicht</span>
+        </button>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 mt-10">
+
+        <!-- ================= ÜBERSICHT (HOME) ================= -->
+        <div id="view-home" class="fade-in">
+            <div class="mb-10 bg-white border-4 border-black p-6 shadow-brutal">
+                <h2 class="text-3xl md:text-5xl font-black uppercase mb-4">Wähle deine Mission</h2>
+                <p class="text-lg">Willkommen im Missionszentrum! Klicke auf deine zugeteilte Raumfahrtagentur, um deine
+                    Aufgaben und die passenden SQL-Befehle zu sehen. Falls du bei einem Fachbegriff festhängst, klicke
+                    einfach auf das markierte Wort, um eine kurze Erklärung zu erhalten.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- ESA Card -->
+                <button onclick="showMission('mission-esa')" class="card-mission group bg-esa">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="bg-black text-white font-bold px-3 py-1 text-sm">TEAM MOMENTUM</span>
+                        <i data-lucide="sun" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-3xl font-black uppercase mb-2 group-hover:underline">Second Sun</h3>
+                    <p class="font-bold text-gray-800">Fokus: Sonnen-Zwillinge & Super-Erden</p>
+                </button>
+
+                <!-- NASA Card -->
+                <button onclick="showMission('mission-nasa')" class="card-mission group bg-nasa">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="bg-black text-white font-bold px-3 py-1 text-sm">TEAM PANGEA</span>
+                        <i data-lucide="layers" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-3xl font-black uppercase mb-2 group-hover:underline">Echo</h3>
+                    <p class="font-bold text-gray-800">Fokus: Redundanz & Erdähnlichkeit</p>
+                </button>
+
+                <!-- JAXA Card -->
+                <button onclick="showMission('mission-jaxa')" class="card-mission group bg-jaxa">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="bg-black text-white font-bold px-3 py-1 text-sm">TEAM HELIX</span>
+                        <i data-lucide="droplets" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-3xl font-black uppercase mb-2 group-hover:underline">Deep Blue</h3>
+                    <p class="font-bold text-gray-800">Fokus: Kühle Super-Wasserwelten</p>
+                </button>
+
+                <!-- ISRO Card -->
+                <button onclick="showMission('mission-isro')" class="card-mission group bg-isro">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="bg-black text-white font-bold px-3 py-1 text-sm">TEAM CURIOSITY</span>
+                        <i data-lucide="navigation" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-3xl font-black uppercase mb-2 group-hover:underline">Next Door</h3>
+                    <p class="font-bold text-gray-800">Fokus: Direkte Nachbarschaft</p>
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ================= MISSION ESA ================= -->
+        <div id="mission-esa" class="hidden fade-in">
+            <div class="bg-esa border-4 border-black p-4 mb-8 shadow-brutal">
+                <h2 class="text-4xl md:text-5xl font-black uppercase">Mission Alpha</h2>
+                <p class="text-xl font-bold mt-2">Team Momentum // Second Sun</p>
+            </div>
+
+            <div class="space-y-8 bg-white border-4 border-black p-6 md:p-10 shadow-brutal">
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">1. Einsatzvorbereitung
+                    </h3>
+                    <ul class="list-disc pl-6 space-y-2 text-lg">
+                        <li><strong>System-Check:</strong> Öffnet eure SQL-Konsole und stellt sicher, dass ihr Zugriff
+                            auf die Datenbank habt.</li>
+                        <li><strong>Daten-Sichtung:</strong> Verschafft euch einen Überblick. Wir interessieren uns
+                            heute für den Sterntyp (<span class="glossary-term"
+                                onclick="openGlossary('star_spectral_type')">star_spectral_type</span>), den Radius des
+                            Planeten (<span class="glossary-term"
+                                onclick="openGlossary('planet_radius_earth')">planet_radius_earth</span>) und die
+                            Temperatur (<span class="glossary-term"
+                                onclick="openGlossary('equilibrium_temp_k')">equilibrium_temp_k</span>).</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">2. Eure Mission</h3>
+                    <p class="text-lg mb-4"><strong>Lagebericht:</strong> Die Menschheit braucht eine "Zweite Erde". Die
+                        ESA sucht nach Sternen, die unserer <span class="glossary-term"
+                            onclick="openGlossary('hint_esa_1')">Sonne exakt gleichen</span>, damit die Strahlungsart
+                        optimal ist. Um eine dichte Atmosphäre zu halten, fokussieren wir uns auf <span
+                            class="glossary-term" onclick="openGlossary('hint_esa_2')">massive "Super-Erden"</span>.</p>
+
+                    <p class="text-lg mb-6"><strong>Die Aufgabe:</strong> <span class="glossary-term"
+                            onclick="openGlossary('hint_group_by')">Gruppiere die gefundenen Planeten nach ihrem
+                            System</span> und berechne die durchschnittliche Temperatur, um im Ergebnis manuell das
+                        kühlste System zu finden.</p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                        <div class="border-4 border-esa bg-white p-4 md:p-6">
+                            <h4
+                                class="font-black text-sm uppercase text-black mb-4 flex items-center gap-2 border-b-2 border-black pb-2">
+                                <i data-lucide="microscope" class="w-5 h-5"></i> Wissenschaftlicher Exkurs
+                            </h4>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="openGlossary('exkurs_esa_1')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Spektralklasse
+                                    G2</button>
+                                <button onclick="openGlossary('exkurs_esa_2')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Massive
+                                    Super-Erden</button>
+                            </div>
+                        </div>
+                        <div class="border-4 border-black bg-white p-4 md:p-6">
+                            <h4
+                                class="font-black text-sm uppercase text-black mb-4 flex items-center gap-2 border-b-2 border-black pb-2">
+                                <i data-lucide="database" class="w-5 h-5"></i> Technische Infos
+                            </h4>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="openGlossary('tech_aggregat')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Aggregatfunktion</button>
+                                <button onclick="openGlossary('GROUP BY')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">GROUP
+                                    BY</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">3. Abschlusspräsentation
+                        (Global Summit)
+                    </h3>
+                    <ul class="list-disc pl-6 space-y-2 text-lg">
+                        <li><strong>Sachstand:</strong> Erklärt kurz eure Momentum-Strategie (Fokus auf Sonnen-Zwillinge
+                            und
+                            Super-Erden).</li>
+                        <li><strong>Ergebnis:</strong> Zeigt euer SQL-Statement. Welches Sternensystem hat gewonnen?
+                        </li>
+                        <li><strong>Finales Ziel:</strong> Tragt euer Sieger-System im Terminal der Website ein!</li>
+                    </ul>
+                </section>
+
+                <details class="mt-12 border-4 border-dashed border-black bg-gray-100 relative group cursor-pointer">
+                    <summary
+                        class="p-6 font-bold text-xl uppercase list-none w-full outline-none flex items-center justify-between">
+                        <div class="absolute -top-4 left-4 bg-black text-white px-3 py-1 font-bold text-sm uppercase">
+                            Verfeinerung</div>
+                        <span class="flex items-center gap-2"><i data-lucide="zap" class="w-5 h-5"></i>
+                            Profi-Level</span>
+                        <i data-lucide="chevron-down" class="w-6 h-6 transition-transform group-open:rotate-180"></i>
+                    </summary>
+                    <div class="px-6 pb-6 border-t-2 border-dashed border-gray-300 mt-2 pt-4 cursor-default">
+                        <p class="mb-4 text-lg"><strong>Der Fall:</strong> Manuelles Suchen ist fehleranfällig. Lasst
+                            den
+                            Server die Arbeit machen!</p>
+                        <p class="text-lg"><strong>SQL-Werkzeug:</strong> Nutzt ein <span class="glossary-term"
+                                onclick="openGlossary('ORDER BY')">ORDER BY</span>, um die Tabelle nach der
+                            Durchschnittstemperatur zu sortieren, sodass das kühlste System automatisch auf Platz 1
+                            steht.
+                        </p>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+
+        <!-- ================= MISSION NASA ================= -->
+        <div id="mission-nasa" class="hidden fade-in">
+            <div class="bg-nasa border-4 border-black p-4 mb-8 shadow-brutal">
+                <h2 class="text-4xl md:text-5xl font-black uppercase">Mission Beta</h2>
+                <p class="text-xl font-bold mt-2">Team Pangea // Echo</p>
+            </div>
+
+            <div class="space-y-8 bg-white border-4 border-black p-6 md:p-10 shadow-brutal">
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">1. Einsatzvorbereitung
+                    </h3>
+                    <ul class="list-disc pl-6 space-y-2 text-lg">
+                        <li><strong>System-Check:</strong> Öffnet eure SQL-Konsole und greift auf die Datenbank zu.</li>
+                        <li><strong>Daten-Sichtung:</strong> Verschafft euch einen Überblick über das Sternensystem
+                            (<code>host_star_name</code>) und den Planeten-Radius (<span class="glossary-term"
+                                onclick="openGlossary('planet_radius_earth')">planet_radius_earth</span>).</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">2. Eure Mission</h3>
+                    <p class="text-lg mb-4"><strong>Lagebericht:</strong> Team Pangea setzt für die Evakuierung auf
+                        maximale Ausfallsicherheit. Wir dürfen das Überleben der Menschheit nicht von einem einzigen
+                        Planeten abhängig machen!</p>
+
+                    <p class="text-lg mb-6"><strong>Die Aufgabe:</strong> Erstelle eine Liste, in der ihr <span
+                            class="glossary-term" onclick="openGlossary('hint_group_by')">die Planeten nach ihrem Stern
+                            gruppiert</span>, um zu zählen, wie viele <span class="glossary-term"
+                            onclick="openGlossary('hint_nasa_1')">erdähnliche Gesteinsplaneten</span> jedes System
+                        besitzt. Welches System in der Tabelle gewinnt?</p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                        <div class="border-4 border-nasa bg-white p-4 md:p-6">
+                            <h4
+                                class="font-black text-sm uppercase text-black mb-4 flex items-center gap-2 border-b-2 border-black pb-2">
+                                <i data-lucide="microscope" class="w-5 h-5"></i> Wissenschaftlicher Exkurs
+                            </h4>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="openGlossary('exkurs_nasa_1')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Erdähnlicher
+                                    Radius</button>
+                                <button onclick="openGlossary('exkurs_nasa_2')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Zweck
+                                    der Redundanz</button>
+                            </div>
+                        </div>
+                        <div class="border-4 border-black bg-white p-4 md:p-6">
+                            <h4
+                                class="font-black text-sm uppercase text-black mb-4 flex items-center gap-2 border-b-2 border-black pb-2">
+                                <i data-lucide="database" class="w-5 h-5"></i> Technische Infos
+                            </h4>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="openGlossary('tech_aggregat')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Aggregatfunktion</button>
+                                <button onclick="openGlossary('GROUP BY')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">GROUP
+                                    BY</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">3. Abschlusspräsentation
+                        (Global Summit)
+                    </h3>
+                    <ul class="list-disc pl-6 space-y-2 text-lg">
+                        <li><strong>Sachstand:</strong> Erklärt kurz eure Pangea-Strategie (Redundanz: Wir wollen viele
+                            gute Planeten in einem System).</li>
+                        <li><strong>Ergebnis:</strong> Zeigt euer SQL-Statement. Welches System steht auf Platz 1 und
+                            wie viele Planeten hat es?</li>
+                        <li><strong>Finales Ziel:</strong> Tragt euer Sieger-System im Terminal der Website ein!</li>
+                    </ul>
+                </section>
+
+                <details class="mt-12 border-4 border-dashed border-black bg-gray-100 relative group cursor-pointer">
+                    <summary
+                        class="p-6 font-bold text-xl uppercase list-none w-full outline-none flex items-center justify-between">
+                        <div class="absolute -top-4 left-4 bg-black text-white px-3 py-1 font-bold text-sm uppercase">
+                            Verfeinerung</div>
+                        <span class="flex items-center gap-2"><i data-lucide="zap" class="w-5 h-5"></i>
+                            Profi-Level</span>
+                        <i data-lucide="chevron-down" class="w-6 h-6 transition-transform group-open:rotate-180"></i>
+                    </summary>
+                    <div class="px-6 pb-6 border-t-2 border-dashed border-gray-300 mt-2 pt-4 cursor-default">
+                        <p class="mb-4 text-lg"><strong>Der Fall:</strong> Ein System mit nur zwei oder drei Planeten
+                            ist
+                            uns immer noch zu riskant. Kürzt die Liste drastisch.</p>
+                        <p class="text-lg"><strong>SQL-Werkzeug:</strong> Nutzt <span class="glossary-term"
+                                onclick="openGlossary('HAVING')">HAVING</span> (zwischen GROUP BY und ORDER BY), um nur
+                            Systeme anzuzeigen, die mindestens 5 gute Planeten haben.</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+
+        <!-- ================= MISSION JAXA ================= -->
+        <div id="mission-jaxa" class="hidden fade-in">
+            <div class="bg-jaxa border-4 border-black p-4 mb-8 shadow-brutal">
+                <h2 class="text-4xl md:text-5xl font-black uppercase">Mission Gamma</h2>
+                <p class="text-xl font-bold mt-2">Team Helix // Deep Blue</p>
+            </div>
+
+            <div class="space-y-8 bg-white border-4 border-black p-6 md:p-10 shadow-brutal">
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">1. Einsatzvorbereitung
+                    </h3>
+                    <ul class="list-disc pl-6 space-y-2 text-lg">
+                        <li><strong>System-Check:</strong> Öffnet eure SQL-Konsole und greift auf die Datenbank zu.</li>
+                        <li><strong>Daten-Sichtung:</strong> Verschafft euch einen Überblick über das Sternensystem
+                            (<code>host_star_name</code>), die Masse (<span class="glossary-term"
+                                onclick="openGlossary('planet_mass_earth')">planet_mass_earth</span>), die Temperatur
+                            (<span class="glossary-term"
+                                onclick="openGlossary('equilibrium_temp_k')">equilibrium_temp_k</span>) und den <span
+                                class="glossary-term" onclick="openGlossary('esi_score')">ESI</span>.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">2. Eure Mission</h3>
+                    <p class="text-lg mb-4"><strong>Lagebericht:</strong> Team Helix plant riesige, schwebende
+                        Ozean-Städte. Dafür brauchen wir <span class="glossary-term"
+                            onclick="openGlossary('hint_jaxa_1')">gigantische Wasserwelten</span>. Planeten in diesem
+                        Bereich (sog. Mini-Neptune oder nasse Super-Erden) haben eine ausreichend starke Schwerkraft, um
+                        extrem dichte, kilometertiefe globale Ozeane vor dem Verflüchtigen ins All zu bewahren. Damit
+                        die Ozeane nicht kochen, suchen wir Sternensysteme mit <span class="glossary-term"
+                            onclick="openGlossary('hint_jaxa_2')">kühlen Bedingungen</span>.</p>
+
+                    <p class="text-lg mb-6"><strong>Die Aufgabe:</strong> Wenn ihr <span class="glossary-term"
+                            onclick="openGlossary('hint_group_by')">die passenden Planeten nach Systemen
+                            gruppiert</span>, zeige uns den exakten Durchschnitts-Wert auf dem <span
+                            class="glossary-term" onclick="openGlossary('hint_jaxa_3')">Earth Similarity Index</span>.
+                        Wir suchen beim Auswerten der Tabelle das Sternensystem, welches astronomisch insgesamt die
+                        erdähnlichsten Bedingungen aufweist.</p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                        <div class="border-4 border-jaxa bg-white p-4 md:p-6">
+                            <h4
+                                class="font-black text-sm uppercase text-black mb-4 flex items-center gap-2 border-b-2 border-black pb-2">
+                                <i data-lucide="microscope" class="w-5 h-5"></i> Wissenschaftlicher Exkurs
+                            </h4>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="openGlossary('exkurs_jaxa_1')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Nasse
+                                    Super-Erden</button>
+                                <button onclick="openGlossary('exkurs_jaxa_2')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Gefahr:
+                                    Treibhauseffekt</button>
+                            </div>
+                        </div>
+                        <div class="border-4 border-black bg-white p-4 md:p-6">
+                            <h4
+                                class="font-black text-sm uppercase text-black mb-4 flex items-center gap-2 border-b-2 border-black pb-2">
+                                <i data-lucide="database" class="w-5 h-5"></i> Technische Infos
+                            </h4>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="openGlossary('tech_aggregat')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Aggregatfunktion</button>
+                                <button onclick="openGlossary('GROUP BY')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">GROUP
+                                    BY</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">3. Abschlusspräsentation
+                        (Global Summit)
+                    </h3>
+                    <ul class="list-disc pl-6 space-y-2 text-lg">
+                        <li><strong>Sachstand:</strong> Erklärt eure Helix-Strategie (Fokus auf extrem schwere
+                            Ozean-Welten, die nicht kochen).</li>
+                        <li><strong>Ergebnis:</strong> Zeigt euer SQL-Statement. Welches Sternensystem hat gewonnen?
+                        </li>
+                        <li><strong>Finales Ziel:</strong> Tragt euer Sieger-System im Terminal der Website ein!</li>
+                    </ul>
+                </section>
+
+                <details class="mt-12 border-4 border-dashed border-black bg-gray-100 relative group cursor-pointer">
+                    <summary
+                        class="p-6 font-bold text-xl uppercase list-none w-full outline-none flex items-center justify-between">
+                        <div class="absolute -top-4 left-4 bg-black text-white px-3 py-1 font-bold text-sm uppercase">
+                            Verfeinerung</div>
+                        <span class="flex items-center gap-2"><i data-lucide="zap" class="w-5 h-5"></i>
+                            Profi-Level</span>
+                        <i data-lucide="chevron-down" class="w-6 h-6 transition-transform group-open:rotate-180"></i>
+                    </summary>
+                    <div class="px-6 pb-6 border-t-2 border-dashed border-gray-300 mt-2 pt-4 cursor-default">
+                        <p class="mb-4 text-lg"><strong>Der Fall:</strong> Augenarbeit ist ineffizient. Lasst den Server
+                            den
+                            ultimativen Sieger ermitteln!</p>
+                        <p class="text-lg"><strong>SQL-Werkzeug:</strong> Erweitert euer Statement um eine Sortierung
+                            (<span class="glossary-term" onclick="openGlossary('ORDER BY')">ORDER BY</span>) nach dem
+                            Durchschnitts-ESI und begrenzt die Ausgabe mit <span class="glossary-term"
+                                onclick="openGlossary('LIMIT')">LIMIT</span> auf exakt eine Zeile.</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+
+        <!-- ================= MISSION ISRO ================= -->
+        <div id="mission-isro" class="hidden fade-in">
+            <div class="bg-isro border-4 border-black p-4 mb-8 shadow-brutal">
+                <h2 class="text-4xl md:text-5xl font-black uppercase">Mission Delta</h2>
+                <p class="text-xl font-bold mt-2">Team Curiosity // Next Door</p>
+            </div>
+
+            <div class="space-y-8 bg-white border-4 border-black p-6 md:p-10 shadow-brutal">
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">1. Einsatzvorbereitung
+                    </h3>
+                    <ul class="list-disc pl-6 space-y-2 text-lg">
+                        <li><strong>System-Check:</strong> Öffnet eure SQL-Konsole und greift auf die Datenbank zu.</li>
+                        <li><strong>Daten-Sichtung:</strong> Verschafft euch einen Überblick über das Sternensystem, die
+                            Temperatur und die Distanz (<span class="glossary-term"
+                                onclick="openGlossary('distance_lightyears')">distance_lightyears</span>).</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">2. Eure Mission</h3>
+                    <p class="text-lg mb-4"><strong>Lagebericht:</strong> Projekt Genesis eilt! Team Curiosity verfolgt
+                        den
+                        absoluten "Quick-Win". Wir brauchen ein neues Zuhause, das wir schnell erreichen.</p>
+
+                    <p class="text-lg mb-6"><strong>Die Aufgabe:</strong> <span class="glossary-term"
+                            onclick="openGlossary('hint_group_by')">Gruppiere die Planeten nach ihrem System</span>,
+                        sofern sie in der
+                        <span class="glossary-term" onclick="openGlossary('hint_isro_1')">lebensfreundlichen Zone</span>
+                        liegen, und frage die <span class="glossary-term" onclick="openGlossary('hint_isro_2')">minimale
+                            Distanz</span> ab. Sortiere die Liste anschließend aufsteigend nach der Distanz, damit unser
+                        direkter Nachbar unübersehbar auf Platz 1 steht!
+                    </p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                        <div class="border-4 border-isro bg-white p-4 md:p-6">
+                            <h4
+                                class="font-black text-sm uppercase text-black mb-4 flex items-center gap-2 border-b-2 border-black pb-2">
+                                <i data-lucide="microscope" class="w-5 h-5"></i> Wissenschaftlicher Exkurs
+                            </h4>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="openGlossary('exkurs_isro_1')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Die
+                                    Habitable Zone</button>
+                                <button onclick="openGlossary('exkurs_isro_2')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Problematik
+                                    Distanz</button>
+                            </div>
+                        </div>
+                        <div class="border-4 border-black bg-white p-4 md:p-6">
+                            <h4
+                                class="font-black text-sm uppercase text-black mb-4 flex items-center gap-2 border-b-2 border-black pb-2">
+                                <i data-lucide="database" class="w-5 h-5"></i> Technische Infos
+                            </h4>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="openGlossary('tech_aggregat')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">Aggregatfunktion</button>
+                                <button onclick="openGlossary('GROUP BY')"
+                                    class="btn-exkurs hover:bg-black hover:text-white">GROUP
+                                    BY</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="text-2xl font-bold uppercase border-b-4 border-black pb-2 mb-4">3. Abschlusspräsentation
+                        (Global Summit)
+                    </h3>
+                    <ul class="list-disc pl-6 space-y-2 text-lg">
+                        <li><strong>Sachstand:</strong> Erklärt kurz eure Curiosity-Strategie (Fokus auf gute Temperatur
+                            kombiniert mit dem kürzesten Flug).</li>
+                        <li><strong>Ergebnis:</strong> Zeigt euer SQL-Statement. Welches Sternensystem steht auf Platz
+                            1?</li>
+                        <li><strong>Finales Ziel:</strong> Tragt euer Sieger-System im Terminal der Website ein!</li>
+                    </ul>
+                </section>
+
+                <details class="mt-12 border-4 border-dashed border-black bg-gray-100 relative group cursor-pointer">
+                    <summary
+                        class="p-6 font-bold text-xl uppercase list-none w-full outline-none flex items-center justify-between">
+                        <div class="absolute -top-4 left-4 bg-black text-white px-3 py-1 font-bold text-sm uppercase">
+                            Verfeinerung</div>
+                        <span class="flex items-center gap-2"><i data-lucide="zap" class="w-5 h-5"></i>
+                            Profi-Level</span>
+                        <i data-lucide="chevron-down" class="w-6 h-6 transition-transform group-open:rotate-180"></i>
+                    </summary>
+                    <div class="px-6 pb-6 border-t-2 border-dashed border-gray-300 mt-2 pt-4 cursor-default">
+                        <p class="mb-4 text-lg"><strong>Der Fall:</strong> Flugzeiten von über einer Generation sind für
+                            uns
+                            inakzeptabel.</p>
+                        <p class="text-lg"><strong>SQL-Werkzeug:</strong> Nutzt <span class="glossary-term"
+                                onclick="openGlossary('HAVING')">HAVING</span> (zwischen GROUP BY und ORDER BY), um nur
+                            noch
+                            unsere absolute Nachbarschaft anzuzeigen (Distanz < 20 Lichtjahre).</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= MODAL FÜR FACHBEGRIFFE ================= -->
+    <div id="modal-overlay"
+        class="modal-backdrop fixed inset-0 z-50 hidden flex items-center justify-center p-4 overflow-y-auto"
+        role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="bg-white border-4 border-black shadow-brutal max-w-4xl w-full relative fade-in my-auto"
+            tabindex="-1" id="modal-content">
+            <!-- Header -->
+            <div class="border-b-4 border-black p-4 md:p-6 flex justify-between items-center bg-black text-white">
+                <h3 id="modal-title" class="text-xl md:text-2xl font-black uppercase tracking-tight break-words pr-2">
+                    Begriff</h3>
+                <button id="modal-close-btn" aria-label="Schließen" onclick="closeGlossary()"
+                    class="hover:text-red-400 transition-colors shrink-0 outline-none focus:ring-2 focus:ring-white">
+                    <i data-lucide="x" class="w-6 h-6 md:w-8 md:h-8 stroke-[3]"></i>
+                </button>
+            </div>
+            <!-- Content -->
+            <div class="p-4 md:p-6 text-base md:text-lg leading-relaxed">
+                <p id="modal-desc" class="mb-4">Definition...</p>
+                <div id="modal-example"
+                    class="bg-gray-100 p-3 font-mono text-sm border-l-4 border-black hidden whitespace-pre overflow-x-auto leading-normal">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Icons initialisieren
+        lucide.createIcons();
+
+        // Glossar-Datenbank (SQL & Astronomie)
+        const glossary = {
+            // Grundlagen Konzepte
+            'tech_aggregat': {
+                title: 'Konzept: Aggregatfunktionen',
+                desc: `
+                <p class="mb-4">Auf unserer Suche verarbeiten wir im Normalfall Hunderte einzelne Daten-Einträge in der Tabelle <code class="bg-gray-200 px-1">exoplanets</code>. Doch eine <strong>Aggregatfunktion</strong> gibt die Einträge nicht extra Zeile für Zeile aus, sondern fasst diese Datenberge rechnerisch in einem einzigen kompakten Endwert zusammen.</p>
+                <ul class="list-disc pl-5 mb-4 space-y-2">
+                    <li><code class="bg-gray-200 px-1 font-bold">COUNT(planet_name)</code> zählt schlichtweg die Gesamtmenge der infrage kommenden Planeten.</li>
+                    <li><code class="bg-gray-200 px-1 font-bold">AVG(equilibrium_temp_k)</code> greift sich von allen Kandidaten die Temperaturwerte und berechnet messerscharf den Durchschnitt.</li>
+                    <li><code class="bg-gray-200 px-1 font-bold">MAX(planet_radius_earth)</code> wühlt durch die Liste und spuckt dir am Ende den allergewaltigsten Radius aus.</li>
+                </ul>
+                <p class="mt-4"><a href="https://mariadb.com/kb/en/aggregate-functions/" target="_blank" class="text-blue-600 hover:text-blue-900 underline font-bold">🔗 MariaDB Offizielle Doku: Aggregatfunktionen</a></p>
+                `,
+                example: `<strong class='text-blue-700'>SELECT</strong> <strong class='text-purple-700'>COUNT</strong>(planet_name), <strong class='text-purple-700'>AVG</strong>(equilibrium_temp_k)
+<strong class='text-blue-700'>FROM</strong> exoplanets;
+
+<span class='text-gray-500'>+--------------------+-------------------------+
+| COUNT(planet_name) | AVG(equilibrium_temp_k) |
++--------------------+-------------------------+
+|                314 |                  288.42 |
++--------------------+-------------------------+</span>
+<span class='text-xs text-gray-400 italic block mt-2'>* Hinweis: Das Tabellen-Resultat ist fiktiv und dient nur zur Veranschaulichung.</span>`
+            },
+
+            // SQL
+            'WHERE': {
+                title: 'WHERE (Filter)',
+                desc: 'Filtert die Rohdaten, noch BEVOR sie in Gruppen gepackt werden. Alles was die Bedingung nicht erfüllt, wird aus der weiteren Berechnung gelöscht.',
+                example: "WHERE planet_radius_earth > 1"
+            },
+            'GROUP BY': {
+                title: 'GROUP BY (Gruppierung)',
+                desc: `
+                <p class="mb-4">Ohne den Befehl <code class="bg-blue-200 px-1 font-bold">GROUP BY</code> rechnet eine Aggregatfunktion die komplette Tabelle <code class="bg-gray-200 px-1">exoplanets</code> stur in einen einzigen Gesamtwert zusammen. Der Befehl fungiert jedoch wie ein gewissenhafter Vor-Sortierer, der die Datenbank intern in logische Planeten-"Kisten" packt.</p>
+                <p class="mb-4"><strong>Das Ergebnis:</strong> Wenn du die Tabelle nach <code class="bg-gray-200 px-1">host_star_name</code> gruppierst, werden alle Planeten, die im selben Sternensystem kreisen, in eine gemeinsame Gruppe sortiert. Wenn du nun <code class="bg-gray-200 px-1 font-bold">COUNT()</code> abfeuerst, zählt die Datenbank nicht mehr blind das gesamte Universum zusammen, sondern führt die korrekte Rechnung hochgradig präzise für jedes Sternensystem isoliert aus!</p>
+                <p class="mt-4"><a href="https://mariadb.com/kb/en/group-by/" target="_blank" class="text-blue-600 hover:text-blue-900 underline font-bold">🔗 MariaDB Offizielle Doku: GROUP BY</a></p>
+                `,
+                example: `<strong class='text-blue-700'>SELECT</strong> host_star_name, <strong class='text-purple-700'>COUNT</strong>(planet_name)
+<strong class='text-blue-700'>FROM</strong> exoplanets
+<strong class='text-blue-700'>GROUP BY</strong> host_star_name;
+
+<span class='text-gray-500'>+------------------+--------------------+
+| host_star_name   | COUNT(planet_name) |
++------------------+--------------------+
+| TRAPPIST-1       |                  7 |
+| Kepler-90        |                  8 |
+| Proxima Centauri |                  2 |
++------------------+--------------------+</span>
+<span class='text-xs text-gray-400 italic block mt-2'>* Hinweis: Das Tabellen-Resultat ist fiktiv und dient nur zur Veranschaulichung.</span>`
+            },
+            'ORDER BY': {
+                title: 'ORDER BY (Sortierung)',
+                desc: 'Sortiert die fertige Tabelle. Standardmäßig alphabetisch oder aufsteigend (ASC). Mit dem Zusatz DESC (Descending) wird absteigend sortiert (das Größte zuerst).',
+                example: "ORDER BY durchschnitts_temp DESC"
+            },
+            'HAVING': {
+                title: 'HAVING (Gruppen-Filter)',
+                desc: 'Der Filter NACH dem Gruppieren. Während WHERE einzelne Planeten löscht, löscht HAVING ganze Sternensysteme (Gruppen), wenn sie eine Bedingung nicht erfüllen.',
+                example: "HAVING COUNT(id) >= 5"
+            },
+            'LIMIT': {
+                title: 'LIMIT (Begrenzung)',
+                desc: 'Schneidet die Ergebnistabelle ab. LIMIT 1 bedeutet, dass nur die allererste Zeile der Tabelle angezeigt wird. Perfekt in Kombination mit ORDER BY.',
+                example: "ORDER BY esi_score DESC LIMIT 1"
+            },
+            'COUNT': {
+                title: 'COUNT (Zählen)',
+                desc: 'Zählt, wie viele Einträge (Zeilen) in einer Gruppe liegen. Praktisch, um herauszufinden, wie viele Planeten ein Sternensystem hat.',
+                example: "COUNT(id)"
+            },
+            'AVG': {
+                title: 'AVG (Durchschnitt)',
+                desc: 'Steht für "Average". Berechnet den mathematischen Durchschnitt aller Werte innerhalb einer Gruppe.',
+                example: "AVG(equilibrium_temp_k)"
+            },
+            'MIN': {
+                title: 'MIN (Minimum)',
+                desc: 'Sucht den absolut kleinsten Wert innerhalb einer Gruppe heraus.',
+                example: "MIN(distance_lightyears)"
+            },
+
+            // Astronomie
+            'star_spectral_type': {
+                title: 'Spektralklasse',
+                desc: 'Klassifiziert Sterne nach Temperatur und Farbe. Unsere Sonne ist "G2" (Gelber Zwerg). "M"-Sterne sind Rote Zwerge (kühl, häufig, aber oft instabil).',
+            },
+            'planet_radius_earth': {
+                title: 'Planeten-Radius',
+                desc: 'Der Radius des Planeten im Vergleich zur Erde (Erde = 1.0). Ein Wert von 2.0 bedeutet, der Planet ist doppelt so groß wie die Erde.',
+            },
+            'planet_mass_earth': {
+                title: 'Planeten-Masse',
+                desc: 'Die Masse des Planeten (Erde = 1.0). Wichtig für die Schwerkraft. Ein Wert von 10 bedeutet die 10-fache Schwerkraft. Werte über 10 deuten oft auf Gasriesen ohne feste Oberfläche hin.',
+            },
+            'equilibrium_temp_k': {
+                title: 'Temperatur (Kelvin)',
+                desc: 'Die berechnete Oberflächentemperatur in Kelvin (K).<br>• 273 K sind ca. 0°C.<br>• 300 K sind angenehme 27°C.<br>• Unter 200 K gefriert Wasser, über 373 K kocht es.',
+            },
+            'esi_score': {
+                title: 'ESI-Score',
+                desc: 'Earth Similarity Index. Ein mathematischer Wert zwischen 0 und 1. Ein Wert von 1.0 wäre ein exakter Klon der Erde. Alles über 0.8 gilt als extrem erdähnlich.',
+            },
+            'distance_lightyears': {
+                title: 'Distanz (Lichtjahre)',
+                desc: 'Die Entfernung zur Erde. Ein Lichtjahr ist die Strecke, die Licht in einem Jahr zurücklegt (ca. 9,46 Billionen Kilometer). Proxima Centauri ist mit ca. 4 Lichtjahren unser nächster Nachbar.',
+            },
+
+            // Differenzierungs-Hints (Lösungs-Klammern)
+            'hint_group_by': {
+                title: 'Technische Daten: Gruppierung',
+                desc: 'Damit wir ganze Systeme vergleichen können, bündeln wir die Planeten unter dem Namen ihres Heimatsterns.',
+                example: "GROUP BY host_star_name"
+            },
+            'hint_esa_1': {
+                title: 'Technische Daten: Sonnen-Zwilling',
+                desc: 'Die Spektralklasse unserer Sonne lautet G2.',
+                example: "star_spectral_type LIKE 'G2%'"
+            },
+            'hint_esa_2': {
+                title: 'Technische Daten: Super-Erde',
+                desc: 'Massive "Super-Erden" sind im Radius größer als unsere Erde.',
+                example: "planet_radius_earth > 1"
+            },
+            'hint_nasa_1': {
+                title: 'Technische Daten: Erdähnliche Planeten',
+                desc: 'Der Radius des Planeten gleicht in etwa dem der Erde.',
+                example: "planet_radius_earth BETWEEN 0.5 AND 1.5"
+            },
+            'hint_jaxa_1': {
+                title: 'Technische Daten: Gigantische Wasserwelten',
+                desc: 'Die Masse muss enorm hoch sein, um den globalen Ozean zu halten.',
+                example: "planet_mass_earth BETWEEN 5 AND 10"
+            },
+            'hint_jaxa_2': {
+                title: 'Technische Daten: Kühle Bedingungen',
+                desc: 'Die Temperatur muss niedrig genug sein, damit die Ozeane nicht kochen.',
+                example: "equilibrium_temp_k < 250"
+            },
+            'hint_jaxa_3': {
+                title: 'Technische Daten: ESI-Wert',
+                desc: 'Der Earth Similarity Index verrät uns als Zahlwort die Erdähnlichkeit.',
+                example: "esi_score"
+            },
+            'hint_isro_1': {
+                title: 'Technische Daten: Lebensfreundliche Zone',
+                desc: 'Die Temperatur muss flüssiges Oberflächenwasser zulassen.',
+                example: "equilibrium_temp_k BETWEEN 200 AND 300"
+            },
+            'hint_isro_2': {
+                title: 'Technische Daten: Minimale Distanz',
+                desc: 'Die Distanz gilt in der Datenbank ohnehin für ein gesamtes System, das MIN() hilft aber in Kombination mit dem GROUP BY, den Wert sauber abzurufen.',
+                example: "MIN(distance_lightyears)"
+            },
+
+            // Wissenschaftliche Exkurse
+            'exkurs_esa_1': {
+                title: 'Exkurs: Spektralklasse G2',
+                desc: 'Sterne werden astronomisch in Spektralklassen (O, B, A, F, G, K, M) eingeteilt. Unsere Sonne ist ein gelber Zwerg der Klasse <strong>G2</strong>. Diese bieten die absolut perfekte Balance aus Strahlung und kosmischer Lebensdauer.'
+            },
+            'exkurs_esa_2': {
+                title: 'Exkurs: Super-Erden',
+                desc: '"Super-Erden" sind massive Gesteinsplaneten, die bedeutend schwerer als die Erde sind. Ihre gewaltige Schwerkraft ist essenziell, um nach der Neubesiedlung unserer Kolonien die künftige Atmosphäre dauerhaft fest am Boden zu halten!'
+            },
+            'exkurs_nasa_1': {
+                title: 'Exkurs: Erdähnlicher Radius',
+                desc: 'Die meisten bisher entdeckten Exoplaneten im Kosmos sind gigantische, lebensfeindliche Gasriesen (ähnlich unserem Jupiter). Daher filtern wir in der Datenbank exakt nach der engen <strong>Radius-Grenze unserer eigenen Erde</strong>, um die Wahrscheinlichkeit auf tatsächliche, felsige Oberflächen zu maximieren.'
+            },
+            'exkurs_nasa_2': {
+                title: 'Exkurs: Zweck der Redundanz',
+                desc: 'Eine hohe Clusterung bewohnbarer Planeten in einem einzigen Sternensystem schützt unsere Kolonisten vor Systemausfällen: Stirbt eine Welt durch eine planetare Katastrophe, ist der gesunde Nachbarplanet nur einen Katzensprung entfernt!'
+            },
+            'exkurs_jaxa_1': {
+                title: 'Exkurs: Nasse Super-Erden',
+                desc: 'Gigantische Wasserwelten benötigen eine enorme Masse, um ihr rotierendes, tiefes Wasser sicher an den Planeten zu binden und vor dem direkten Verflüchtigen in den leeren Weltraum zu bewahren.'
+            },
+            'exkurs_jaxa_2': {
+                title: 'Exkurs: Gefahr Treibhauseffekt',
+                desc: 'Dichte, nasse Planeten sind extrem anfällig für Überhitzung. Ist die Temperatur zu hoch, würden sich diese Meere extrem schnell in monströse, kochende Wasserdampf-Hüllen verwandeln. Niedrige Umgebungstemperaturen sind hier unsere zwingende, planetare Rettung!'
+            },
+            'exkurs_isro_1': {
+                title: 'Exkurs: Die Habitable Zone',
+                desc: 'Die <strong>Habitable Zone</strong> (oder "Goldilocks-Zone") ist der kritische orbitale Gürtel eines Sternsystems, in dem die Temperaturen für flüssiges Oberflächenwasser exakt richtig sind: Nicht zu heiß (das Wasser verdampft) und nicht zu kalt (das Wasser gefriert).'
+            },
+            'exkurs_isro_2': {
+                title: 'Exkurs: Problem der Distanz',
+                desc: 'Da wir bei "Projekt Genesis" von astronomischen Distanzen sprechen, sind Lichtjahre unsere größte Limitierung. Ein Sonnensystem in absoluter Perfektion ist für uns zu 100% nutzlos, wenn unsere Flotte mangels Energie Millionen Jahre dorthin fliegen müsste!'
+            }
+        };
+
+        // Navigation Logik
+        const views = ['view-home', 'mission-esa', 'mission-nasa', 'mission-jaxa', 'mission-isro'];
+        const btnBack = document.getElementById('btn-back');
+
+        function showMission(missionId) {
+            views.forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById(missionId).classList.remove('hidden');
+            btnBack.classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function showHome() {
+            views.forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById('view-home').classList.remove('hidden');
+            btnBack.classList.add('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        // Modal Logik
+        const modal = document.getElementById('modal-overlay');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDesc = document.getElementById('modal-desc');
+        const modalExample = document.getElementById('modal-example');
+
+        function openGlossary(termKey) {
+            const data = glossary[termKey];
+            if (!data) return;
+
+            modalTitle.innerText = data.title;
+            modalDesc.innerHTML = data.desc; // innerHTML erlaubt <br> tags
+
+            if (data.example) {
+                modalExample.innerHTML = "<span class='text-gray-500 block mb-2 pointer-events-none'>Beispiel:</span>" + data.example;
+                modalExample.classList.remove('hidden');
+            } else {
+                modalExample.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => document.getElementById('modal-close-btn').focus(), 50);
+        }
+
+        function closeGlossary() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Schließen des Modals beim Klick außerhalb der Box
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+                closeGlossary();
+            }
+        });
+
+        // Schließen des Modals per Escape-Taste für ein flüssiges Hacker-Gefühl
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeGlossary();
+            }
+        });
+    </script>
+</body>
+
+</html>

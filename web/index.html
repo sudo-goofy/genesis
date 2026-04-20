@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projekt Genesis - Earth Interstellar Initiative</title>
+
+    <!-- Fonts: Playfair (Newspaper), Space Mono (Tech), Inter (UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        mono: ['Space Mono', 'monospace'],
+                    },
+                    boxShadow: {
+                        'brutal': '8px 8px 0px 0px rgba(0,0,0,1)',
+                        'brutal-sm': '4px 4px 0px 0px rgba(0,0,0,1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F4F4F0;
+            color: #000000;
+            overflow-x: hidden;
+        }
+
+        /* Timeline Styling */
+        .timeline-track {
+            position: absolute;
+            left: 20px;
+            top: 40px;
+            bottom: 0;
+            width: 6px;
+            background-color: black;
+            z-index: 0;
+        }
+
+        @media (min-width: 768px) {
+            .timeline-track {
+                left: 40px;
+            }
+        }
+
+        /* Zoom & Fade Animations für neue Sektionen */
+        .reveal-section {
+            display: none;
+            opacity: 0;
+            transform: scale(0.9) translateY(40px);
+            transform-origin: top center;
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal-section.is-visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* Brutalist Inputs */
+        .brutal-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 4px solid black;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.25rem;
+            padding: 0.5rem 0;
+            transition: all 0.3s;
+        }
+
+        .brutal-input:focus {
+            outline: none;
+            background-color: rgba(0, 0, 0, 0.05);
+            padding-left: 0.5rem;
+        }
+
+        .brutal-input:disabled {
+            color: #6b7280;
+            border-bottom: 4px dashed #9ca3af !important;
+            background-color: transparent;
+        }
+
+        /* Zeitungs-Layout */
+        .newspaper-columns {
+            column-count: 1;
+            column-gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .newspaper-columns {
+                column-count: 2;
+            }
+        }
+
+        /* Loading Spinner für Buttons */
+        .loader-sm {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Article Expanded Mode */
+        .article-card {
+            cursor: zoom-in;
+            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .article-card:hover {
+            transform: translateY(-2px) translateX(-2px);
+            box-shadow: 12px 12px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        .article-card:hover::after {
+            content: 'Klicken zum Erweitern ⤢';
+            position: absolute;
+            top: -1rem;
+            right: -1rem;
+            background: black;
+            color: white;
+            padding: 0.3rem 0.6rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transform: rotate(4deg);
+            z-index: 10;
+        }
+
+        .article-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(244, 244, 240, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .article-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .expanded-header {
+            display: none;
+            position: fixed;
+            z-index: 10005;
+            pointer-events: none;
+        }
+
+        /* Wenn der Sticker aktiv und ans body-Ende gehängt ist */
+        .expanded-header.active-sticker {
+            display: inline-block;
+            top: 3vh;
+            left: 3vw;
+            /* Base style vor der Animation (Startpunkt) */
+            transform: translate(-30px, -30px) rotate(-6deg);
+            opacity: 0;
+            font-size: 1.5rem;
+            line-height: 1rem;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .expanded-header.active-sticker.animate-stamp {
+            animation: slideInHeader 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes slideInHeader {
+            from {
+                transform: translate(-30px, -30px) rotate(-6deg);
+                opacity: 0;
+            }
+
+            to {
+                transform: translate(0, 0) rotate(-3deg);
+                opacity: 1;
+            }
+        }
+
+        .article-card.expanded {
+            position: fixed;
+            top: 5vh;
+            left: 5vw;
+            width: 90vw;
+            max-width: 1400px;
+            height: 90vh;
+            max-height: 90vh;
+            z-index: 9999;
+            margin: 0 auto !important;
+            right: 0;
+            padding: 6vh 6vw !important;
+            overflow-y: auto;
+            cursor: zoom-out;
+            background-color: white;
+            border-width: 6px;
+            box-shadow: 24px 24px 0px 0px rgba(0, 0, 0, 1);
+            /* Transform Animations are cleanly handled natively via the View Transitions API / FLIP */
+            transform-origin: center center;
+            will-change: width, height, transform;
+        }
+
+        .article-card.expanded::after {
+            display: none;
+        }
+
+        .article-card.expanded .newspaper-columns {
+            font-size: 1.8rem;
+            /* Größere Schrift */
+            line-height: 1.8;
+            column-gap: 5rem;
+            column-count: 2;
+        }
+
+        .article-card.expanded p {
+            margin-bottom: 2.5rem;
+        }
+
+        .audio-btn {
+            display: none;
+            opacity: 0;
+            transition: transform 0.2s, opacity 0.5s ease-in;
+        }
+
+        .article-card.expanded .audio-btn {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Mobile Anpassungen */
+        @media (max-width: 768px) {
+            .expanded-header.active-sticker {
+                top: 2vh;
+                left: 2vw;
+                padding: 1rem 1.5rem;
+                transform-origin: top left;
+                transform: translate(-20px, -20px) scale(0.8) rotate(-6deg);
+            }
+
+            .expanded-header.active-sticker.animate-stamp {
+                animation: slideInHeaderMobile 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            }
+
+            @keyframes slideInHeaderMobile {
+                from {
+                    transform: translate(-20px, -20px) scale(0.8) rotate(-6deg);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: translate(0, 0) scale(0.8) rotate(-3deg);
+                    opacity: 1;
+                }
+            }
+
+            .article-card.expanded {
+                padding: 14vh 5vw 6vh 5vw !important;
+                /* Genug Platz oben für den fixierten Titel */
+            }
+
+            .article-card.expanded .newspaper-columns {
+                column-count: 1;
+                font-size: 1.4rem;
+            }
+        }
+
+        /* Eigene Transition-Regeln für die View Transition API für extrem smoothe Übergänge */
+        ::view-transition-group(article-expand) {
+            animation-duration: 0.5s;
+            animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation-duration: 0.5s;
+            animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen pb-32 selection:bg-black selection:text-white">
+
+    <div id="backdrop" class="article-backdrop" onclick="closeExpandedArticle()"></div>
+
+    <!-- Header -->
+    <header
+        class="border-b-4 border-black bg-white py-4 px-6 md:px-12 sticky top-0 z-50 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <i data-lucide="globe-2" class="w-8 h-8 md:w-10 md:h-10 stroke-[2.5]"></i>
+            <h1 class="font-black text-xl md:text-3xl tracking-tighter uppercase leading-none">Earth Interstellar</h1>
+        </div>
+        <div
+            class="font-mono font-bold text-xs md:text-sm bg-black text-white px-3 py-1 border-2 border-black flex items-center gap-2">
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div> SYSTEM ONLINE
+        </div>
+    </header>
+
+    <main class="relative max-w-5xl mx-auto mt-12 md:mt-20 px-4 md:px-0">
+
+        <!-- Timeline -->
+        <div class="timeline-track"></div>
+
+        <!-- ================= KNOTEN 1: 2026 ================= -->
+        <section class="relative z-10 pl-16 md:pl-28 mb-32">
+            <div
+                class="absolute left-[4px] md:left-[24px] top-2 w-8 h-8 bg-white border-4 border-black rounded-full flex items-center justify-center">
+                <div class="w-3 h-3 bg-black rounded-full"></div>
+            </div>
+
+            <div
+                class="bg-black text-white font-mono font-bold inline-block px-4 py-2 mb-8 border-2 border-black shadow-brutal-sm text-sm md:text-base">
+                21. APR 2026 // UN-HAUPTQUARTIER
+            </div>
+
+            <!-- Artikel 1 -->
+            <div class="text-left mb-10 border-b-8 border-black pb-8">
+                <p class="font-mono text-lg font-bold uppercase tracking-widest mb-4">The Geneva Tribune</p>
+                <h2 class="font-serif italic text-5xl md:text-7xl font-black tracking-tight leading-none mb-6">
+                    Menschheit am<br>Scheideweg</h2>
+                <p
+                    class="font-sans font-bold text-lg md:text-xl uppercase border-y-4 border-black py-2 inline-block px-4">
+                    UN fordert Machbarkeitsstudie für 120-Milliarden-Projekt
+                </p>
+            </div>
+
+            <div class="bg-white border-4 border-black p-6 md:p-10 shadow-brutal mb-8 article-card relative"
+                onclick="toggleArticle(this)">
+                <!-- Vorlese-Button, der mit der Karte verbunden ist und beim Klicken nicht die Karte erweitert/schließt -->
+                <button onclick="event.stopPropagation(); toggleAudio('audio-akt1', this)"
+                    class="absolute bottom-4 right-4 bg-white text-black p-3 rounded-full hover:bg-gray-100 outline outline-4 outline-black shadow-brutal-sm flex items-center justify-center z-50 transition-all hover:scale-110 audio-btn"
+                    title="Text vorlesen lassen / Pausieren">
+                    <i data-lucide="play" class="w-6 h-6 md:w-8 md:h-8 fill-black" id="icon-audio-akt1"></i>
+                </button>
+                <audio id="audio-akt1" src="assets/Sterne.mp3"></audio>
+
+                <!-- Dieser Header wird nur eingeblendet, wenn die Karte expandiert ist -->
+                <div
+                    class="expanded-header hidden font-mono text-sm md:text-base uppercase tracking-widest bg-black text-white px-4 py-2 border-2 border-black shadow-brutal-sm font-bold">
+                    UN fordert Machbarkeitsstudie
+                </div>
+                <div class="newspaper-columns font-serif text-lg leading-relaxed text-gray-800">
+                    <p class="mb-4"><strong class="font-black text-black">GENF, 21. April 2026.</strong> Zum ersten Mal
+                        in der Geschichte haben die weltweit führenden Forschungsgruppen – Momentum, Pangea, Helix und
+                        Curiosity –
+                        ihre Datenbanken vereint. Etwa 6000 Exoplaneten stehen auf der Liste. Die Vereinten Nationen
+                        diskutieren in einer Sondersitzung die Freigabe von 120 Milliarden Euro für die "Earth
+                        Interstellar Initiative" (EII).</p>
+                    <p class="mb-4">Doch bevor das Kapital fließt, verlangt der Sicherheitsrat harte Fakten. Ein frisch
+                        formiertes, globales Daten-Analysten-Team wurde beauftragt, eine
+                        statistische Machbarkeitsstudie zu liefern.</p>
+                    <p><em>"Weitreichende globale Entscheidungen können nicht auf Basis von unübersichtlichen Rohdaten
+                            getroffen werden"</em>, stellte die UN-Generalsekretärin klar.
+                        <em>"Wir fordern von allen vier Teams präzise, verdichtete Metriken und aggregierte
+                            Kennzahlen. Ist
+                            das Universum feindlich? Oder gibt es messbare Hoffnung?"</em> Die Welt hält den Atem an.
+                    </p>
+                </div>
+            </div>
+
+            <button id="btn-show-terminal" onclick="unlockSection('terminal-form-container', this)"
+                class="bg-white border-4 border-black font-black font-sans uppercase text-lg md:text-xl py-4 px-8 shadow-brutal hover:shadow-brutal-sm hover:translate-y-1 hover:translate-x-1 transition-all flex items-center gap-4">
+                Zum Analysten-Terminal <i data-lucide="terminal" class="w-6 h-6"></i>
+            </button>
+
+            <!-- Akt 1 Formular -->
+            <div id="terminal-form-container" class="reveal-section mt-12">
+                <div class="mb-8 flex items-center gap-4 border-b-4 border-black pb-4">
+                    <i data-lucide="database" class="w-10 h-10 stroke-[2.5]"></i>
+                    <h2 class="font-black font-sans text-3xl md:text-4xl uppercase tracking-tighter">UN Assessment
+                        Terminal</h2>
+                </div>
+
+                <div class="bg-[#f8f9fa] border-4 border-black shadow-brutal p-6 md:p-10">
+                    <p class="font-mono font-bold mb-8 text-sm md:text-base bg-black text-white p-3 inline-block">///
+                        BITTE AGGREGAT-DATEN EINGEBEN</p>
+
+                    <form id="form-act1" onsubmit="handleAct1Submit(event)" class="space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 mt-4">
+
+                            <!-- ESA -->
+                            <div class="border-4 border-black p-5 relative bg-[#f8f9fa] mt-4">
+                                <div
+                                    class="absolute -top-6 -left-4 bg-black text-white font-bold px-3 py-1 text-lg shadow-brutal-sm">
+                                    ⚡ Momentum</div>
+                                <div class="mt-4 mb-5">
+                                    <label
+                                        class="font-sans font-bold uppercase text-xs text-gray-500 tracking-wider block mb-1">1.
+                                        Kürzeste Distanz (Lj)</label>
+                                    <input type="text" id="esa-1" required class="brutal-input" placeholder="MIN(...)">
+                                </div>
+                                <div>
+                                    <label
+                                        class="font-sans font-bold uppercase text-xs text-gray-500 tracking-wider block mb-1">2.
+                                        Durchschnittsdistanz (Lj)</label>
+                                    <input type="text" id="esa-2" required class="brutal-input" placeholder="AVG(...)">
+                                </div>
+                            </div>
+
+                            <!-- NASA -->
+                            <div class="border-4 border-black p-5 relative bg-[#f8f9fa] mt-4">
+                                <div
+                                    class="absolute -top-6 -left-4 bg-black text-white font-bold px-3 py-1 text-lg shadow-brutal-sm">
+                                    🪐 Pangea</div>
+                                <div class="mt-4 mb-5">
+                                    <label
+                                        class="font-sans font-bold uppercase text-xs text-gray-500 tracking-wider block mb-1">1.
+                                        Durchschn. Temperatur (K)</label>
+                                    <input type="text" id="nasa-1" required class="brutal-input" placeholder="AVG(...)">
+                                </div>
+                                <div>
+                                    <label
+                                        class="font-sans font-bold uppercase text-xs text-gray-500 tracking-wider block mb-1">2.
+                                        Höchste Temperatur (K)</label>
+                                    <input type="text" id="nasa-2" required class="brutal-input" placeholder="MAX(...)">
+                                </div>
+                            </div>
+
+                            <!-- JAXA -->
+                            <div class="border-4 border-black p-5 relative bg-[#f8f9fa] mt-4">
+                                <div
+                                    class="absolute -top-6 -left-4 bg-black text-white font-bold px-3 py-1 text-lg shadow-brutal-sm">
+                                    🧬 Helix</div>
+                                <div class="mt-4 mb-5">
+                                    <label
+                                        class="font-sans font-bold uppercase text-xs text-gray-500 tracking-wider block mb-1">1.
+                                        Anzahl Top-Kandidaten</label>
+                                    <input type="text" id="jaxa-1" required class="brutal-input"
+                                        placeholder="COUNT(...)">
+                                </div>
+                                <div>
+                                    <label
+                                        class="font-sans font-bold uppercase text-xs text-gray-500 tracking-wider block mb-1">2.
+                                        Durchschnitts-ESI</label>
+                                    <input type="text" id="jaxa-2" required class="brutal-input" placeholder="AVG(...)">
+                                </div>
+                            </div>
+
+                            <!-- ISRO -->
+                            <div class="border-4 border-black p-5 relative bg-[#f8f9fa] mt-4">
+                                <div
+                                    class="absolute -top-6 -left-4 bg-black text-white font-bold px-3 py-1 text-lg shadow-brutal-sm">
+                                    🔭 Curiosity</div>
+                                <div class="mt-4 mb-5">
+                                    <label
+                                        class="font-sans font-bold uppercase text-xs text-gray-500 tracking-wider block mb-1">1.
+                                        Anzahl Neuentdeckungen</label>
+                                    <input type="text" id="isro-1" required class="brutal-input"
+                                        placeholder="COUNT(...)">
+                                </div>
+                                <div>
+                                    <label
+                                        class="font-sans font-bold uppercase text-xs text-gray-500 tracking-wider block mb-1">2.
+                                        Höchster ESI (ab 2020)</label>
+                                    <input type="text" id="isro-2" required class="brutal-input" placeholder="MAX(...)">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="pt-8 border-t-4 border-black mt-8">
+                            <button type="submit" id="btn-submit-1"
+                                class="w-full bg-black text-white border-4 border-black font-black font-sans uppercase text-lg py-5 shadow-brutal hover:shadow-brutal-sm transition-all flex items-center justify-center gap-3">
+                                Daten an UN übermitteln
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= KNOTEN 2: 2046 ================= -->
+        <section id="node-2046" class="reveal-section relative z-10 pl-16 md:pl-28 mb-32">
+            <div
+                class="absolute left-[4px] md:left-[24px] top-2 w-8 h-8 bg-white border-4 border-black rounded-full flex items-center justify-center">
+                <div class="w-3 h-3 bg-red-600 rounded-full"></div>
+            </div>
+
+            <div
+                class="bg-red-600 text-white font-mono font-bold inline-block px-4 py-2 mb-8 border-2 border-black shadow-brutal-sm text-sm md:text-base">
+                12. OKT 2046 // 20 JAHRE SPÄTER
+            </div>
+
+            <div class="text-left mb-10 border-b-8 border-black pb-8">
+                <p class="font-mono text-lg font-bold uppercase tracking-widest mb-4 text-red-600">The Global Dispatch
+                </p>
+                <div class="flex items-center gap-6 mb-6">
+                    <h2 class="font-serif italic text-5xl md:text-7xl font-black tracking-tight leading-none">Die
+                        Zeit<br>läuft ab</h2>
+                </div>
+                <p
+                    class="font-sans font-bold text-lg md:text-xl uppercase border-y-4 border-black py-2 inline-block px-4 bg-red-600 text-white">
+                    Sonden sind bereit – Koordinaten fehlen
+                </p>
+            </div>
+
+            <div class="bg-white border-4 border-black p-6 md:p-10 shadow-brutal mb-8 article-card relative"
+                onclick="toggleArticle(this)">
+                <!-- Vorlese-Button, der mit der Karte verbunden ist und beim Klicken nicht die Karte erweitert/schließt -->
+                <button onclick="event.stopPropagation(); toggleAudio('audio-akt2', this)"
+                    class="absolute bottom-4 right-4 bg-white text-black p-3 rounded-full hover:bg-gray-100 outline outline-4 outline-black shadow-brutal-sm flex items-center justify-center z-50 transition-all hover:scale-110 audio-btn"
+                    title="Text vorlesen lassen / Pausieren">
+                    <i data-lucide="play" class="w-6 h-6 md:w-8 md:h-8 fill-black" id="icon-audio-akt2"></i>
+                </button>
+                <audio id="audio-akt2" src="assets/akt2Klimafenster.mp3"></audio>
+
+                <!-- Dieser Header wird nur eingeblendet, wenn die Karte expandiert ist -->
+                <div
+                    class="expanded-header hidden font-mono text-sm md:text-base uppercase tracking-widest bg-red-600 text-white px-4 py-2 border-2 border-black shadow-brutal-sm font-bold">
+                    Sonden sind bereit – Koordinaten fehlen
+                </div>
+                <div class="newspaper-columns font-serif text-lg leading-relaxed text-gray-800">
+                    <p class="mb-4"><strong class="font-black text-black">HOUSTON, 12. Oktober 2046.</strong> Zwanzig
+                        Jahre sind vergangen, seit die UN das Budget bewilligte. Das klimatische Fenster der Erde
+                        schließt sich schneller als selbst die pessimistischsten Modelle vorhergesagt haben.</p>
+                    <p class="mb-4">Die gute Nachricht: In den Hangars stehen vier hochmoderne, interstellare Sonden
+                        startbereit.</p>
+                    <p class="mb-4">Die schlechte Nachricht: Wir haben nur diesen einen Versuch. Die Sonden müssen heute
+                        gestartet werden. Die vier Agenturen müssen ihre Daten nun <em>gruppieren</em> und die
+                        aussichtsreichsten Sternensysteme herausfiltern.</p>
+                    <p class="font-bold text-black border-l-4 border-red-600 pl-4 my-6">"Wir brauchen heute vier Namen.
+                        Vier Sterne. Vier Chancen." — Commander Sarah Jenkins, EII.</p>
+                </div>
+            </div>
+
+            <button id="btn-show-briefing" onclick="unlockSection('briefing-form-container', this)"
+                class="bg-white border-4 border-black font-black font-sans text-red-600 uppercase text-lg md:text-xl py-4 px-8 shadow-brutal hover:shadow-brutal-sm hover:translate-y-1 hover:translate-x-1 transition-all flex items-center gap-4">
+                Zielauswahl starten <i data-lucide="rocket" class="w-6 h-6"></i>
+            </button>
+
+            <!-- Akt 2 Formular -->
+            <div id="briefing-form-container" class="reveal-section mt-12">
+                <div class="mb-8 flex items-center gap-4 border-b-4 border-black pb-4">
+                    <i data-lucide="crosshair" class="w-10 h-10 stroke-[2.5]"></i>
+                    <h2 class="font-black font-sans text-3xl md:text-4xl uppercase tracking-tighter">Mission Briefing
+                    </h2>
+                </div>
+
+                <div class="bg-white border-4 border-black shadow-brutal p-6 md:p-10">
+                    <p class="font-serif italic text-lg md:text-xl mb-8 border-l-4 border-black pl-4">
+                        Geben Sie den Namen des finalen Sternensystems ein, das Ihre Agentur nach der Gruppierung (GROUP
+                        BY / HAVING) als Ziel auswählt.
+                    </p>
+
+                    <form id="form-act2" onsubmit="handleAct2Submit(event)" class="space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 mt-8">
+                            <div class="border-4 border-black p-5 relative bg-[#f8f9fa] mt-4">
+                                <div
+                                    class="absolute -top-6 -left-4 bg-black text-white font-bold px-3 py-1 text-lg shadow-brutal-sm">
+                                    ⚡ Momentum</div>
+                                <label class="font-sans font-bold uppercase text-xs text-gray-500 mt-2 block mb-2">The
+                                    Second Sun</label>
+                                <input type="text" id="planet-esa" required class="brutal-input"
+                                    placeholder="Z.B. Kepler-452">
+                            </div>
+                            <div class="border-4 border-black p-5 relative bg-[#f8f9fa] mt-4">
+                                <div
+                                    class="absolute -top-6 -left-4 bg-black text-white font-bold px-3 py-1 text-lg shadow-brutal-sm">
+                                    🪐 Pangea</div>
+                                <label class="font-sans font-bold uppercase text-xs text-gray-500 mt-2 block mb-2">
+                                    Echo</label>
+                                <input type="text" id="planet-nasa" required class="brutal-input"
+                                    placeholder="Z.B. TRAPPIST-1">
+                            </div>
+                            <div class="border-4 border-black p-5 relative bg-[#f8f9fa] mt-4">
+                                <div
+                                    class="absolute -top-6 -left-4 bg-black text-white font-bold px-3 py-1 text-lg shadow-brutal-sm">
+                                    🧬 Helix</div>
+                                <label class="font-sans font-bold uppercase text-xs text-gray-500 mt-2 block mb-2">The
+                                    Deep Blue</label>
+                                <input type="text" id="planet-jaxa" required class="brutal-input"
+                                    placeholder="Z.B. LHS 1140">
+                            </div>
+                            <div class="border-4 border-black p-5 relative bg-[#f8f9fa] mt-4">
+                                <div
+                                    class="absolute -top-6 -left-4 bg-black text-white font-bold px-3 py-1 text-lg shadow-brutal-sm">
+                                    🔭 Curiosity</div>
+                                <label class="font-sans font-bold uppercase text-xs text-gray-500 mt-2 block mb-2">
+                                    Next Door</label>
+                                <input type="text" id="planet-isro" required class="brutal-input"
+                                    placeholder="Z.B. Proxima Centauri">
+                            </div>
+                        </div>
+
+                        <div class="pt-8 mt-8">
+                            <button type="submit" id="btn-submit-2"
+                                class="w-full bg-red-600 text-white border-4 border-black font-black font-sans uppercase text-xl py-5 shadow-brutal hover:shadow-brutal-sm hover:translate-y-1 hover:translate-x-1 transition-all flex items-center justify-center gap-3">
+                                Startsequenz einleiten <i data-lucide="flame" class="w-6 h-6 fill-white"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= KNOTEN 3: 2047 ================= -->
+        <section id="node-2047" class="reveal-section relative z-10 pl-16 md:pl-28">
+            <div
+                class="absolute left-[4px] md:left-[24px] top-2 w-8 h-8 bg-white border-4 border-black rounded-full flex items-center justify-center">
+                <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+            </div>
+
+            <div
+                class="bg-black text-white font-mono font-bold inline-block px-4 py-2 mb-8 border-2 border-black shadow-brutal-sm text-sm md:text-base">
+                28. MAI 2047 // ORBIT
+            </div>
+
+            <div class="text-left mb-10">
+                <i data-lucide="satellite" class="w-12 h-12 mb-6 text-green-600 animate-pulse"></i>
+                <p class="font-mono text-lg font-bold uppercase tracking-widest mb-4">Command Center</p>
+                <h2 class="font-serif italic text-5xl md:text-7xl font-black tracking-tight leading-none mb-6">
+                    Koordinaten<br>verifiziert</h2>
+            </div>
+
+            <div
+                class="bg-black text-green-400 font-mono border-4 border-black p-6 md:p-12 shadow-brutal mb-12 relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 opacity-10">
+                    <i data-lucide="crosshairs" class="w-64 h-64 text-green-500"></i>
+                </div>
+
+                <div class="relative z-10 text-lg md:text-xl">
+                    <p
+                        class="mb-8 font-bold text-2xl md:text-3xl uppercase tracking-widest border-b-2 border-green-800 pb-4 text-white">
+                        > ZIELSYSTEME PROGRAMMIERT.
+                    </p>
+
+                    <ul class="font-bold mb-12 space-y-4">
+                        <li class="flex flex-col md:flex-row md:justify-between border-b border-green-900 pb-2">
+                            <span>[MOMENTUM] MISSION ALPHA</span>
+                            <span id="res-esa" class="text-white mt-1 md:mt-0 bg-green-900 px-2">...</span>
+                        </li>
+                        <li class="flex flex-col md:flex-row md:justify-between border-b border-green-900 pb-2">
+                            <span>[PANGEA] MISSION BETA</span>
+                            <span id="res-nasa" class="text-white mt-1 md:mt-0 bg-green-900 px-2">...</span>
+                        </li>
+                        <li class="flex flex-col md:flex-row md:justify-between border-b border-green-900 pb-2">
+                            <span>[HELIX] MISSION GAMMA</span>
+                            <span id="res-jaxa" class="text-white mt-1 md:mt-0 bg-green-900 px-2">...</span>
+                        </li>
+                        <li class="flex flex-col md:flex-row md:justify-between pb-2">
+                            <span>[CURIOSITY] MISSION DELTA</span>
+                            <span id="res-isro" class="text-white mt-1 md:mt-0 bg-green-900 px-2">...</span>
+                        </li>
+                    </ul>
+
+                    <div onclick="playOutroVideo()"
+                        class="bg-green-900 text-black font-black uppercase text-center py-4 mt-8 animate-pulse cursor-pointer hover:bg-green-700 hover:text-white transition-colors border-2 border-green-400">
+                        [ /// LIVE-ÜBERTRAGUNG AUS DEM ORBIT STARTEN /// ]
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-left md:text-center mt-16">
+                <p
+                    class="font-mono font-bold text-gray-400 uppercase tracking-widest text-sm border-t-2 border-dashed border-gray-300 pt-8 inline-block">
+                    [/// ENDE DER SQL-SIMULATION ///]
+                </p>
+            </div>
+        </section>
+
+        <!-- ================= CINEASTIC OUTRO OVERLAY ================= -->
+        <div id="outro-overlay"
+            class="fixed inset-0 bg-black z-[999999] hidden flex items-center justify-center opacity-0 transition-opacity duration-1000">
+            <video id="outro-video" class="w-full h-full object-contain" src="assets/outro.mp4"></video>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        function playOutroVideo() {
+            // Stop any playing audio from the page (like article dictations)
+            const audios = document.querySelectorAll('audio');
+            audios.forEach(a => {
+                a.pause();
+                a.currentTime = 0;
+            });
+
+            const overlay = document.getElementById('outro-overlay');
+            const video = document.getElementById('outro-video');
+
+            // Show overlay and fade to black
+            overlay.classList.remove('hidden');
+            void overlay.offsetWidth; // Trigger reflow for transition
+            overlay.classList.remove('opacity-0');
+
+            // Attempt to go fullscreen for maximum cinematic effect
+            try {
+                if (overlay.requestFullscreen) {
+                    overlay.requestFullscreen();
+                } else if (overlay.webkitRequestFullscreen) {
+                    overlay.webkitRequestFullscreen();
+                }
+            } catch (e) {
+                console.log("Fullscreen API error", e);
+            }
+
+            // Start video
+            video.currentTime = 0;
+            video.play();
+
+            // When video ends, smoothly fade back to the website view
+            video.onended = () => {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+                overlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 1000);
+            };
+        }
+
+        let activeArticle = null;
+
+        function toggleArticle(el) {
+            if (activeArticle && activeArticle !== el) {
+                closeExpandedArticle();
+            } else if (!el.classList.contains('expanded')) {
+                // Open
+                activeArticle = el;
+                el.style.viewTransitionName = 'article-expand';
+
+                const performLayoutChange = () => {
+                    // Platzhalter einfügen, damit der Content drunter nicht springt
+                    const rect = el.getBoundingClientRect();
+                    const placeholder = document.createElement('div');
+                    placeholder.style.width = rect.width + 'px';
+                    placeholder.style.height = rect.height + 'px';
+                    placeholder.style.marginBottom = window.getComputedStyle(el).marginBottom;
+                    el.parentNode.insertBefore(placeholder, el);
+                    activeArticle._placeholder = placeholder;
+
+                    el.classList.add('expanded');
+                    el.closest('section').style.zIndex = '10000';
+                    el.closest('main').style.zIndex = '10000';
+
+                    const header = el.querySelector('.expanded-header');
+                    if (header) {
+                        document.body.appendChild(header);
+                        header.classList.add('active-sticker');
+                        activeArticle._sticker = header;
+                    }
+
+                    document.getElementById('backdrop').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                };
+
+                // Native smoothe Interpolation vom Container-Zustand zum Fullscreen-Zustand nutzen
+                if (document.startViewTransition) {
+                    document.startViewTransition(() => {
+                        performLayoutChange();
+                    }).finished.finally(() => {
+                        el.style.viewTransitionName = '';
+                        if (activeArticle && activeArticle._sticker) {
+                            activeArticle._sticker.classList.add('animate-stamp');
+                        }
+                    });
+                } else {
+                    performLayoutChange();
+                    setTimeout(() => {
+                        if (activeArticle && activeArticle._sticker) {
+                            activeArticle._sticker.classList.add('animate-stamp');
+                        }
+                    }, 50);
+                }
+            } else {
+                closeExpandedArticle();
+            }
+        }
+
+        function toggleAudio(audioId, btnElement) {
+            const audio = document.getElementById(audioId);
+            const icon = btnElement.querySelector('svg');
+
+            if (audio.paused) {
+                audio.play();
+                if (icon) {
+                    // Update attributes for pause icon
+                    icon.setAttribute('data-lucide', 'pause');
+                    icon.classList.remove('fill-black');
+                    // We need to re-render this specific icon
+                    lucide.createIcons();
+                }
+            } else {
+                audio.pause();
+                if (icon) {
+                    icon.setAttribute('data-lucide', 'play');
+                    icon.classList.add('fill-black');
+                    lucide.createIcons();
+                }
+            }
+
+            // Optional: reset icon when audio finishes
+            audio.onended = function () {
+                const refreshedIcon = btnElement.querySelector('svg');
+                if (refreshedIcon) {
+                    refreshedIcon.setAttribute('data-lucide', 'play');
+                    refreshedIcon.classList.add('fill-black');
+                    lucide.createIcons();
+                }
+            };
+        }
+
+        function closeExpandedArticle() {
+            if (!activeArticle) return;
+            const el = activeArticle;
+            el.style.viewTransitionName = 'article-expand';
+
+            const performLayoutChange = () => {
+                document.getElementById('backdrop').classList.remove('active');
+                el.classList.remove('expanded');
+
+                // Platzhalter wieder entfernen
+                if (el._placeholder) {
+                    el._placeholder.remove();
+                    el._placeholder = null;
+                }
+
+                if (el._sticker) {
+                    el.prepend(el._sticker);
+                    el._sticker.classList.remove('active-sticker', 'animate-stamp');
+                    el._sticker = null;
+                }
+
+                el.closest('section').style.zIndex = '';
+                el.closest('main').style.zIndex = '';
+                document.body.style.overflow = '';
+                activeArticle = null;
+            };
+
+            if (document.startViewTransition) {
+                document.startViewTransition(() => {
+                    performLayoutChange();
+                }).finished.finally(() => {
+                    el.style.viewTransitionName = '';
+                });
+            } else {
+                performLayoutChange();
+            }
+        }
+
+        function unlockSection(sectionId, hideButtonElement = null) {
+            const el = document.getElementById(sectionId);
+            if (hideButtonElement) hideButtonElement.style.display = 'none';
+            el.style.display = 'block';
+            void el.offsetWidth;
+            el.classList.add('is-visible');
+            setTimeout(() => {
+                const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }, 100);
+        }
+
+        function setButtonLoading(btn, text) {
+            btn.dataset.originalText = btn.innerHTML; // Speichern für Reset bei Fehler
+            btn.disabled = true;
+            btn.classList.add('opacity-80', 'cursor-not-allowed');
+            btn.innerHTML = `<div class="loader-sm mr-3"></div> ${text}`;
+
+            // Inputs sperren
+            const inputs = btn.closest('form').querySelectorAll('input');
+            inputs.forEach(i => { i.disabled = true; i.style.borderColor = 'black'; });
+        }
+
+        function setButtonError(btn) {
+            btn.innerHTML = `<i data-lucide="alert-triangle" class="w-6 h-6 mr-2"></i> KORREKTUR ERFORDERLICH`;
+            btn.classList.remove('bg-black', 'bg-red-600', 'opacity-80', 'cursor-not-allowed');
+            btn.classList.add('bg-red-500', 'text-white', 'border-red-800');
+            lucide.createIcons();
+
+            // Nach 3 Sekunden wieder normaler Zustand
+            setTimeout(() => {
+                btn.classList.remove('bg-red-500', 'text-white', 'border-red-800');
+                btn.classList.add('bg-black', 'text-white');
+                btn.innerHTML = btn.dataset.originalText;
+                btn.disabled = false;
+
+                // Inputs wieder entsperren
+                const inputs = btn.closest('form').querySelectorAll('input');
+                inputs.forEach(i => { i.disabled = false; });
+            }, 3000);
+        }
+
+        function setButtonSuccess(btn, text) {
+            btn.classList.remove('bg-black', 'bg-red-600', 'opacity-80', 'cursor-not-allowed');
+            btn.classList.add('bg-green-600', 'text-white', 'border-green-800');
+            btn.innerHTML = `<i data-lucide="check-circle" class="w-6 h-6 mr-2"></i> ${text}`;
+            lucide.createIcons();
+        }
+
+        // Hilfsfunktion zur toleranten Überprüfung der Werte
+        function checkValue(id, expectedValue, tolerance) {
+            const inputEl = document.getElementById(id);
+            // Kommas durch Punkte ersetzen, falls Schüler 4,2 statt 4.2 tippen
+            const parsedVal = parseFloat(inputEl.value.replace(',', '.'));
+
+            if (isNaN(parsedVal) || Math.abs(parsedVal - expectedValue) > tolerance) {
+                inputEl.style.borderBottomColor = '#ef4444'; // Rot für Fehler
+                return false;
+            } else {
+                inputEl.style.borderBottomColor = '#22c55e'; // Grün für Richtig
+                return true;
+            }
+        }
+
+        function handleAct1Submit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-1');
+
+            // --- BACKDOOR (TEACHER OVERRIDE) ---
+            const inputs = Array.from(e.target.querySelectorAll('input'));
+            const isBackdoor = inputs.every(input => input.value.trim() === '0');
+
+            if (isBackdoor) {
+                setButtonSuccess(btn, "SYSTEM OVERRIDE");
+                unlockSection('node-2046');
+                return;
+            }
+            // ----------------------------------
+
+            setButtonLoading(btn, "UN analysiert Daten...");
+
+            // Nach kurzer Verzögerung simulieren wir die Datenüberprüfung
+            setTimeout(() => {
+                // Hier prüfen wir die tatsächlichen SQL Ergebnisse (mit etwas Toleranz für Rundungen)
+                let isValid = true;
+
+                // Team Momentum (4.24 / 2336.9)
+                if (!checkValue('esa-1', 4.24, 0.1)) isValid = false;
+                if (!checkValue('esa-2', 2336.9, 2.0)) isValid = false;
+
+                // Team Pangea (778.1 / 2609)
+                if (!checkValue('nasa-1', 778.1, 1.0)) isValid = false;
+                if (!checkValue('nasa-2', 2609, 1.0)) isValid = false;
+
+                // Team Helix (5 / 0.7412)
+                if (!checkValue('jaxa-1', 5, 0.1)) isValid = false;
+                if (!checkValue('jaxa-2', 0.74, 0.02)) isValid = false; // Toleranz deckt 0.7412 ab
+
+                // Team Curiosity (2066 / 0.8135)
+                if (!checkValue('isro-1', 2066, 1.0)) isValid = false;
+                if (!checkValue('isro-2', 0.81, 0.02)) isValid = false; // Toleranz deckt 0.8135 ab
+
+                if (!isValid) {
+                    setButtonError(btn); // Schlägt fehl, Button wird rot, Inputs entsperren sich wieder
+                } else {
+                    setButtonSuccess(btn, "Budget bewilligt");
+                    unlockSection('node-2046');
+                }
+            }, 1500); // 1.5 Sekunden "Nachdenkzeit" des Systems
+        }
+
+        function handleAct2Submit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-2');
+
+            // --- BACKDOOR (TEACHER OVERRIDE) ---
+            const inputs = Array.from(e.target.querySelectorAll('input'));
+            const isBackdoor = inputs.every(input => input.value.trim() === '0');
+
+            if (isBackdoor) {
+                document.getElementById('res-esa').innerText = "TEST-ZIEL-ALPHA";
+                document.getElementById('res-nasa').innerText = "TEST-ZIEL-BETA";
+                document.getElementById('res-jaxa').innerText = "TEST-ZIEL-GAMMA";
+                document.getElementById('res-isro').innerText = "TEST-ZIEL-DELTA";
+                setButtonSuccess(btn, "SYSTEM OVERRIDE");
+                unlockSection('node-2047');
+                return;
+            }
+            // ----------------------------------
+
+            document.getElementById('res-esa').innerText = document.getElementById('planet-esa').value.toUpperCase();
+            document.getElementById('res-nasa').innerText = document.getElementById('planet-nasa').value.toUpperCase();
+            document.getElementById('res-jaxa').innerText = document.getElementById('planet-jaxa').value.toUpperCase();
+            document.getElementById('res-isro').innerText = document.getElementById('planet-isro').value.toUpperCase();
+
+            setButtonLoading(btn, "Flugbahnen berechnen...");
+
+            setTimeout(() => {
+                setButtonSuccess(btn, "Sonden gestartet");
+                unlockSection('node-2047');
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>

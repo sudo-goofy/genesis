@@ -1,0 +1,11 @@
+# Lehrer-Materialien und Geheimnisse verbergen
+ausarbeitung/
+lsg/
+handout/
+
+# Große Datenbanken und Dumps verbergen
+*.db
+*.csv
+.DS_Store
+
+# Wir erlauben explizit alles andere (z.B. part1/, part2/, web/, readme.md, Bilder)
