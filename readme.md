@@ -8,19 +8,20 @@ Bevor der Unterricht startet, muss sichergestellt sein, dass die Schüler-Termin
 * **`exoplanets.db`**: Fertig vorbereitete SQLite-Datenbank. Ideal für schnellen Offline-Unterrichtseinsatz in Tools wie "DB Browser for SQLite", falls kein lokaler Web-/Datenbank-Server (DBeaver/XAMPP) zur Verfügung steht.
 * **`exoplanets.csv`**: Der reine CSV-Rohdatensatz der NASA.
 
-## 🧑‍💻 2. Schüler-Arbeitsmaterialien (Ordner `/handout`)
-Hier befinden sich die interaktiven Arbeitsaufträge. Die HTML-Dateien sind im modernen Brutalism-Design gestaltet und komplett offline im Browser lauffähig (sofern Tailwind lokal liegt, ansonsten mit normaler Internetverbindung).
-* **`/handout/web/index-akt1.html`**: Das interaktive Mission-Control Interface für Akt 1 (Einführung in MIN, MAX, AVG, COUNT sowie WHERE-Filter). Hiermit starten die 4 Teams.
-* **`/handout/web/index-akt2.html`**: Das fortgeschrittene Interface für Akt 2 (Fokus auf GROUP BY und HAVING-Klauseln in der Auswertung).
-* **`/handout/Handouts_Akt_2.pdf`**: Herkömmliche Handouts/Arbeitsblätter als Ersatzlösung.
+## 🧑‍💻 2. Schüler-Arbeitsmaterialien (Ordner `/part1` und `/part2`)
+Hier befinden sich die interaktiven Arbeitsaufträge. Die HTML-Dateien sind responsiv gestaltet und können entweder lokal geöffnet oder per GitHub Pages bequem als Link im Unterricht verteilt werden.
+* **`/part1/index.html`**: Das interaktive Mission-Control Interface für Akt 1 (Einführung in MIN, MAX, AVG, COUNT sowie WHERE-Filter). Hiermit starten die 4 Teams.
+* **`/part2/index.html`**: Das fortgeschrittene Interface für Akt 2 (Fokus auf GROUP BY und HAVING-Klauseln).
+* **`/handout/Handouts_Akt_2.pdf`** *(Nur lokal auf Lehrkraft-Ebene)*: Herkömmliche Handouts als Ersatzlösung oder für haptische Differenzierung.
 
 ## 📺 3. Lehrkräfte-Dashboard (Ordner `/web`)
 Dies ist das zentrale Steuerungswerkzeug für das Smartboard oder den Beamer!
-* **`/web/index.html`**: Diese Seite ruft man am Anfang der Stunde auf ("Global Summit"). Hier wird die Story ("Earth Interstellar Initiative") mit passender musikalischer/visueller Atmosphäre vorgestellt. Im integrierten Analysten-Terminal tippt man am Ende die Ergebnisse der Schüler-Gruppen ein, um den Fortschritt live zu verifizieren.
+* **`/web/index.html`**: Diese Seite ruft man am Anfang der Stunde auf ("Global Summit"). Hier wird die Story ("Earth Interstellar Initiative") vorgestellt. Im integrierten Analysten-Terminal tippt man am Ende die Ergebnisse der Schüler-Gruppen ein, um den Fortschritt live zu verifizieren.
 
-## 🗝️ 4. Musterlösungen (Ordner `/lsg`)
-* **`/lsg/lsg_akt1.sql`**: Sämtliche SQL-Musterlösungen aller 4 Forschungsgruppen für den ersten Akt (auskommentiert mit Erklärungen für die Lehrkraft).
-* **`/lsg/lsg_akt2.sql`**: Sämtliche SQL-Musterlösungen für den zweiten Akt (inklusive Bonus-Aufgaben wie ORDER BY-Verknüpfungen).
+## 🗝️ 4. Musterlösungen & Ausarbeitung (Ordner `/lsg` & `/ausarbeitung` - *nur lokal!*)
+*Achtung: Durch die `.gitignore`-Datei werden diese Ordner (sowie die Datenbanken) absichtlich **nicht** auf GitHub hochgeladen, damit Schüler bei Nutzung von GitHub Pages keine Lösungen finden.*
+* **`/lsg/lsg_akt1.sql`** & **`lsg_akt2.sql`**: Sämtliche SQL-Musterlösungen.
+* **`/ausarbeitung/Ausarbeitung.md`**: Die vollständige didaktische Ausarbeitung und der Verlaufsplan.
 
 ---
 
