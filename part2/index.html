@@ -790,10 +790,21 @@
         const btnBack = document.getElementById('btn-back');
 
         function showMission(missionId) {
-            views.forEach(v => document.getElementById(v).classList.add('hidden'));
-            document.getElementById(missionId).classList.remove('hidden');
-            btnBack.classList.remove('hidden');
-            window.scrollTo(0, 0);
+            let expectedPw = "";
+            if (missionId === 'mission-esa') expectedPw = "momentum";
+            else if (missionId === 'mission-nasa') expectedPw = "pangea";
+            else if (missionId === 'mission-jaxa') expectedPw = "helix";
+            else if (missionId === 'mission-isro') expectedPw = "curiosity";
+
+            const userInput = prompt("Zugriffskontrolle: Bitte Team-Passwort eingeben:");
+            if (userInput && userInput.trim().toLowerCase() === expectedPw) {
+                views.forEach(v => document.getElementById(v).classList.add('hidden'));
+                document.getElementById(missionId).classList.remove('hidden');
+                btnBack.classList.remove('hidden');
+                window.scrollTo(0, 0);
+            } else if (userInput !== null) {
+                alert("Zugriff verweigert: Falsches Passwort. Überprüfe deinen Teamnamen.");
+            }
         }
 
         function showHome() {

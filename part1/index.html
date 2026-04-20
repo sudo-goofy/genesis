@@ -598,11 +598,22 @@
         }
 
         function showMission(missionId) {
-            viewHome.classList.add('hidden');
-            missions.forEach(m => document.getElementById(m).classList.add('hidden'));
-            document.getElementById(missionId).classList.remove('hidden');
-            btnBack.classList.remove('hidden');
-            window.scrollTo(0, 0);
+            let expectedPw = "";
+            if (missionId === 'mission-esa') expectedPw = "momentum";
+            else if (missionId === 'mission-nasa') expectedPw = "pangea";
+            else if (missionId === 'mission-jaxa') expectedPw = "helix";
+            else if (missionId === 'mission-isro') expectedPw = "curiosity";
+
+            const userInput = prompt("Zugriffskontrolle: Bitte Team-Passwort eingeben:");
+            if (userInput && userInput.trim().toLowerCase() === expectedPw) {
+                viewHome.classList.add('hidden');
+                missions.forEach(m => document.getElementById(m).classList.add('hidden'));
+                document.getElementById(missionId).classList.remove('hidden');
+                btnBack.classList.remove('hidden');
+                window.scrollTo(0, 0);
+            } else if (userInput !== null) {
+                alert("Zugriff verweigert: Falsches Passwort. Überprüfe deinen Teamnamen.");
+            }
         }
 
         // ---- Glossar Logic ----
