@@ -364,12 +364,19 @@
 
             <div class="bg-white border-4 border-black p-6 md:p-10 shadow-brutal mb-8 article-card relative"
                 onclick="toggleArticle(this)">
-                <!-- Vorlese-Button, der mit der Karte verbunden ist und beim Klicken nicht die Karte erweitert/schließt -->
-                <button onclick="event.stopPropagation(); toggleAudio('audio-akt1', this)"
-                    class="absolute bottom-4 right-4 bg-white text-black p-3 rounded-full hover:bg-gray-100 outline outline-4 outline-black shadow-brutal-sm flex items-center justify-center z-50 transition-all hover:scale-110 audio-btn"
-                    title="Text vorlesen lassen / Pausieren">
-                    <i data-lucide="play" class="w-6 h-6 md:w-8 md:h-8 fill-black" id="icon-audio-akt1"></i>
-                </button>
+                <!-- Audiosteuerung: Vorlesen & Neustart -->
+                <div class="absolute bottom-4 right-4 flex space-x-3 z-50">
+                    <button onclick="event.stopPropagation(); restartAudio('audio-akt1')"
+                        class="bg-white text-black p-3 rounded-full hover:bg-gray-100 outline outline-4 outline-black shadow-brutal-sm flex items-center justify-center transition-all hover:scale-110 audio-btn"
+                        title="Vorlesen neu starten">
+                        <i data-lucide="rotate-ccw" class="w-6 h-6 md:w-8 md:h-8 font-bold"></i>
+                    </button>
+                    <button onclick="event.stopPropagation(); toggleAudio('audio-akt1', this)"
+                        class="bg-white text-black p-3 rounded-full hover:bg-gray-100 outline outline-4 outline-black shadow-brutal-sm flex items-center justify-center transition-all hover:scale-110 audio-btn"
+                        title="Text vorlesen lassen / Pausieren">
+                        <i data-lucide="play" class="w-6 h-6 md:w-8 md:h-8 fill-black" id="icon-audio-akt1"></i>
+                    </button>
+                </div>
                 <audio id="audio-akt1" src="assets/Sterne.mp3"></audio>
 
                 <!-- Dieser Header wird nur eingeblendet, wenn die Karte expandiert ist -->
@@ -535,12 +542,19 @@
 
             <div class="bg-white border-4 border-black p-6 md:p-10 shadow-brutal mb-8 article-card relative"
                 onclick="toggleArticle(this)">
-                <!-- Vorlese-Button, der mit der Karte verbunden ist und beim Klicken nicht die Karte erweitert/schließt -->
-                <button onclick="event.stopPropagation(); toggleAudio('audio-akt2', this)"
-                    class="absolute bottom-4 right-4 bg-white text-black p-3 rounded-full hover:bg-gray-100 outline outline-4 outline-black shadow-brutal-sm flex items-center justify-center z-50 transition-all hover:scale-110 audio-btn"
-                    title="Text vorlesen lassen / Pausieren">
-                    <i data-lucide="play" class="w-6 h-6 md:w-8 md:h-8 fill-black" id="icon-audio-akt2"></i>
-                </button>
+                <!-- Audiosteuerung: Vorlesen & Neustart -->
+                <div class="absolute bottom-4 right-4 flex space-x-3 z-50">
+                    <button onclick="event.stopPropagation(); restartAudio('audio-akt2')"
+                        class="bg-white text-black p-3 rounded-full hover:bg-gray-100 outline outline-4 outline-black shadow-brutal-sm flex items-center justify-center transition-all hover:scale-110 audio-btn"
+                        title="Vorlesen neu starten">
+                        <i data-lucide="rotate-ccw" class="w-6 h-6 md:w-8 md:h-8 font-bold"></i>
+                    </button>
+                    <button onclick="event.stopPropagation(); toggleAudio('audio-akt2', this)"
+                        class="bg-white text-black p-3 rounded-full hover:bg-gray-100 outline outline-4 outline-black shadow-brutal-sm flex items-center justify-center transition-all hover:scale-110 audio-btn"
+                        title="Text vorlesen lassen / Pausieren">
+                        <i data-lucide="play" class="w-6 h-6 md:w-8 md:h-8 fill-black" id="icon-audio-akt2"></i>
+                    </button>
+                </div>
                 <audio id="audio-akt2" src="assets/akt2Klimafenster.mp3"></audio>
 
                 <!-- Dieser Header wird nur eingeblendet, wenn die Karte expandiert ist -->
@@ -840,6 +854,13 @@
                     lucide.createIcons();
                 }
             };
+        }
+
+        function restartAudio(audioId) {
+            const audio = document.getElementById(audioId);
+            if (audio) {
+                audio.currentTime = 0;
+            }
         }
 
         function closeExpandedArticle() {
